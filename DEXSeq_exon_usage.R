@@ -1,10 +1,10 @@
 ### DEXSeq Differential Exon Usage Analysis
 # initial steps of analysis are done using two Python scripts provided with DEXSeq
 #
-pythonScriptsDir = system.file( "python_scripts", package="DEXSeq" )
-list.files(pythonScriptsDir)
+# pythonScriptsDir = system.file( "python_scripts", package="DEXSeq" )
+# list.files(pythonScriptsDir)
 
-system.file( "python_scripts", package="DEXSeq", mustWork=TRUE )
+# system.file( "python_scripts", package="DEXSeq", mustWork=TRUE )
 
 ###  Preparing the annotation
 # ubuntu command line shell
@@ -24,7 +24,7 @@ library("reshape2")
 library("ggplot2")
 library("stringr")
 
-setwd("C:/Users/alman/Desktop/RNAseq")
+setwd("~/GitHub/MFA_Omics_Integration/data/mfa_data_NEW.csv")
 countFiles = list.files( pattern=".txt$", full.names=TRUE)
 countFiles <- countFiles[c(1:3,7:9)]
 flattenedFile = list.files( pattern="gff$", full.names=TRUE)
@@ -140,6 +140,7 @@ ensembl = useDataset("hsapiens_gene_ensembl",mart=ensembl)
 
 # LOOK FOR CONSENSUS CLEAVAGE SEQUENCE trough all exons of one gene
 CD44_exons <- getSequence( id="CD44" ,type='hgnc_symbol',seqType = 'gene_exon', mart = ensembl)
+# CD44 <- getSequence(chromosome = 4, start = 50000-3000, end = 50000+3000,type='hgnc_symbol',seqType = 'gene_exon_intron', mart = GENES)
 CD44_exons$cleavage <- "NA"
 
 for(i in 1:nrow(CD44_exons)) {
@@ -165,4 +166,12 @@ for(i in 1:nrow(CD44_exons)) {
   CD44_exons$cleavage[i] <- str_detect(CD44_exons$sequence[i], consensus_seq)
 }
 
-CD44_exons <- 
+### annotate gene symbol
+
+probando <- function(x) {
+getSequence(chromosome = hits_seq_cleav_annot$genomicData.seqnames[x], start = hits_seq_cleav_annot$genomicData.start[i], end = hits_seq_cleav_annot$genomicData.end[i],type='hgnc_symbol',seqType = 'gene_exon_intron', mart = ensembl)[2]
+}
+
+for(i in 1:nrow(hits_seq_cleav_annot)) {
+  hits_seq_cleav_annot$hgnc_symbol[i] <- probando(i)
+}
