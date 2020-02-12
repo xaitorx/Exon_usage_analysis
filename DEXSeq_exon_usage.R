@@ -24,7 +24,7 @@ library("reshape2")
 library("ggplot2")
 library("stringr")
 
-setwd("~/GitHub/MFA_Omics_Integration/data/mfa_data_NEW.csv")
+setwd("C:/Users/alman/Desktop/RNAseq")
 countFiles = list.files( pattern=".txt$", full.names=TRUE)
 countFiles <- countFiles[c(1:3,7:9)]
 flattenedFile = list.files( pattern="gff$", full.names=TRUE)
