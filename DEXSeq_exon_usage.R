@@ -96,6 +96,8 @@ exon_frequency_pie("ENSG00000136942")
 ## might want to look at range around it, not just there
 library(BSgenome.Hsapiens.NCBI.GRCh38)
 
+hits_table_all_annot <- read.csv("C:/Users/alman/Desktop/Grecia/Exon_usage/hits_table_all_annot.csv")
+
 chromO <- hits$genomicData.seqnames
 starT <- hits$genomicData.start
 enD <- hits$genomicData.end
@@ -133,7 +135,7 @@ for(i in 1:nrow(hits)) {
 library("biomaRt")
 
 listEnsembl(GRCh=37)
-listEnsembl(version=91)
+listEnsembl(version=99)
 
 ensembl = useMart("ensembl")
 ensembl = useDataset("hsapiens_gene_ensembl",mart=ensembl)
@@ -141,18 +143,28 @@ ensembl = useDataset("hsapiens_gene_ensembl",mart=ensembl)
 # LOOK FOR CONSENSUS CLEAVAGE SEQUENCE trough all exons of one gene
 CD44_exons <- getSequence( id="CD44" ,type='hgnc_symbol',seqType = 'gene_exon', mart = ensembl)
 # CD44 <- getSequence(chromosome = 4, start = 50000-3000, end = 50000+3000,type='hgnc_symbol',seqType = 'gene_exon_intron', mart = GENES)
-CD44_exons$cleavage <- "NA"
 
 for(i in 1:nrow(CD44_exons)) {
   CD44_exons$cleavage[i] <- str_detect(CD44_exons$gene_exon[i], consensus_seq)
 }
 
-for(i in 1:nrow(CD44_exons)) {
-  CD44_exons$lenght[i] <- nchar(CD44_exons$gene_exon[i])
+
+### ANY EXON WITH CLEAVAGE IN GENE X?
+cleavage_true <- function(x) {
+  exons <- getSequence( id= x ,type='hgnc_symbol',seqType = 'gene_exon', mart = ensembl)
+  for(i in 1:nrow(exons)) {
+    exons$cleavage[i] <- str_detect(exons$gene_exon[i], consensus_seq)
+  }
+  table(exons$cleavage)
 }
 
-for(i in 1:nrow(CD44_exons)) {
-  CD44_exons$residues[i] <- nchar(CD44_exons$gene_exon[i])/3
+cleavage_true("CD44")
+
+#FALSE  TRUE 
+#75    22 
+
+for(i in 1:nrow(hits_table_all_annot)) {
+  hits_table_all_annot$cleavage[i] <- cleavage_true(hits_table_all_annot$hgnc_symbol[i])[2]
 }
 
 ###
@@ -175,3 +187,13 @@ getSequence(chromosome = hits_seq_cleav_annot$genomicData.seqnames[x], start = h
 for(i in 1:nrow(hits_seq_cleav_annot)) {
   hits_seq_cleav_annot$hgnc_symbol[i] <- probando(i)
 }
+
+###
+library("biomaRt")
+human = useMart(biomart="ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl",host="grch37.ensembl.org", path="/biomart/martservice",ensemblRedirect = FALSE)
+
+transcript_info = data.frame(unique(getBM(attributes = c("chromosome_name", "genomic_coding_start","genomic_coding_end"),filters="ensembl_transcript_id", values="ENST00000269305",mart = human)))
+
+transcript_info[order(transcript_info$genomic_coding_start),]
+
+ensembl_gene_id
